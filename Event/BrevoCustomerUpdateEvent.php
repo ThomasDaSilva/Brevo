@@ -28,8 +28,11 @@ use Thelia\Model\Customer;
 
 class BrevoCustomerUpdateEvent extends ActionEvent
 {
-    public function __construct(protected Customer $customer)
+    protected $customer;
+
+    public function __construct(Customer $customer)
     {
+        $this->customer = $customer;
     }
 
     public function getCustomer(): Customer

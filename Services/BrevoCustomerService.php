@@ -13,16 +13,20 @@
 namespace Brevo\Services;
 
 use Brevo\Api\BrevoClient;
-use Brevo\Brevo;
-use Thelia\Model\ConfigQuery;
 use Thelia\Model\CustomerQuery;
 
 class BrevoCustomerService
 {
-    public function __construct(private BrevoClient $brevoClient)
+    private $brevoClient;
+
+    public function __construct(BrevoClient $brevoClient)
     {
+        $this->brevoClient = $brevoClient;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function createUpdateContact($customerId)
     {
         $customer = CustomerQuery::create()->findPk($customerId);

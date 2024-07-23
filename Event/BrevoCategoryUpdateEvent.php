@@ -28,8 +28,11 @@ use Thelia\Model\Category;
 
 class BrevoCategoryUpdateEvent extends ActionEvent
 {
-    public function __construct(protected Category $category)
+    protected $category;
+
+    public function __construct(Category $category)
     {
+        $this->category = $category;
     }
 
     public function getCategory(): Category

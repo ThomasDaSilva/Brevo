@@ -21,7 +21,7 @@
  * Date: 17/11/2023.
  */
 
-namespace Brevo\Trait;
+namespace Brevo\BrevoTrait;
 
 use Brevo\Brevo;
 use Propel\Runtime\Connection\ConnectionWrapper;
@@ -37,7 +37,7 @@ trait DataExtractorTrait
         string $mapKey,
         string $sourceTableName,
         string $selectorFieldName,
-        mixed $selector,
+        $selector,
         int $selectorType = \PDO::PARAM_INT
     ): array {
         try {
@@ -152,7 +152,7 @@ trait DataExtractorTrait
             'customer_query',
             'customer',
             'customer.id',
-            $customerId,
+            $customerId
         );
     }
 

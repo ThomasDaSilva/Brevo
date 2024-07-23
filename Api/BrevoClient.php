@@ -20,6 +20,7 @@
 namespace Brevo\Api;
 
 use Brevo\Brevo;
+use Brevo\BrevoTrait\DataExtractorTrait;
 use Brevo\Client\Api\ContactsApi;
 use Brevo\Client\ApiException;
 use Brevo\Client\Configuration;
@@ -27,10 +28,8 @@ use Brevo\Client\Model\CreateContact;
 use Brevo\Client\Model\RemoveContactFromList;
 use Brevo\Client\Model\UpdateContact;
 use Brevo\Model\BrevoNewsletterQuery;
-use Brevo\Trait\DataExtractorTrait;
 use GuzzleHttp\Client;
 use Thelia\Core\Event\Newsletter\NewsletterEvent;
-use Thelia\Exception\TheliaProcessException;
 use Thelia\Model\ConfigQuery;
 use Thelia\Model\Customer;
 use Thelia\Model\CustomerQuery;
@@ -45,8 +44,8 @@ class BrevoClient
 {
     use DataExtractorTrait;
 
-    protected ContactsApi $contactApi;
-    private mixed $newsletterId;
+    protected $contactApi;
+    private $newsletterId;
 
     public function __construct($apiKey = null, $newsletterId = null)
     {

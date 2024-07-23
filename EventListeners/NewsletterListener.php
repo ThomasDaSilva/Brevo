@@ -39,8 +39,11 @@ use Thelia\Model\NewsletterQuery;
  */
 class NewsletterListener implements EventSubscriberInterface
 {
-    public function __construct(private BrevoClient $api)
+    private $api;
+
+    public function __construct(BrevoClient $api)
     {
+        $this->api = $api;
     }
 
     public function subscribe(NewsletterEvent $event): void

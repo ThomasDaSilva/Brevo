@@ -15,7 +15,8 @@ namespace Brevo\EventListeners;
 use Brevo\Services\BrevoApiService;
 use Brevo\Services\BrevoOrderService;
 use Brevo\Services\BrevoProductService;
-use Brevo\Trait\DataExtractorTrait;
+use Brevo\BrevoTrait\DataExtractorTrait;
+use Propel\Runtime\Exception\PropelException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Thelia\Core\Event\Cart\CartEvent;
@@ -31,15 +32,24 @@ class CartListener implements EventSubscriberInterface
 {
     use DataExtractorTrait;
 
+    private $requestStack;
+    private $brevoApiService;
+    private $brevoProductService;
+    private $brevoOrderService;
+
     public function __construct(
-        private RequestStack $requestStack,
-        private BrevoApiService $brevoApiService,
-        private BrevoProductService $brevoProductService,
-        private BrevoOrderService $brevoOrderService,
+        RequestStack $requestStack,
+        BrevoApiService $brevoApiService,
+        BrevoProductService $brevoProductService,
+        BrevoOrderService $brevoOrderService
     ) {
+        $this->brevoOrderService = $brevoOrderService;
+        $this->brevoProductService = $brevoProductService;
+        $this->brevoApiService = $brevoApiService;
+        $this->requestStack = $requestStack;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             TheliaEvents::CART_ADDITEM => ['trackUpdateCartEvent', 128],
@@ -57,23 +67,32 @@ class CartListener implements EventSubscriberInterface
     public function updateStatus(OrderEvent $orderEvent): void
     {
         /** @var Lang $lang */
-        $lang = $this->requestStack->getCurrentRequest()?->getSession()->getLang();
+        $lang = $this->requestStack->getCurrentRequest()->getSession()->getLang();
 
         $order = $orderEvent->getOrder();
 
         $this->brevoOrderService->exportOrder($order, $lang->getLocale());
     }
 
+    /**
+     * @throws PropelException
+     */
     public function trackUpdateCartEvent(CartEvent $event): void
     {
         $this->trackCart($event, 'cart_updated');
     }
 
+    /**
+     * @throws PropelException
+     */
     public function trackDeleteCartEvent(CartEvent $event): void
     {
         $this->trackCart($event, 'cart_deleted');
     }
 
+    /**
+     * @throws PropelException
+     */
     public function trackNewOrderEvent(OrderEvent $event): void
     {
         $order = $event->getPlacedOrder();
@@ -85,7 +104,7 @@ class CartListener implements EventSubscriberInterface
         $currency = $order->getCurrency();
 
         /** @var Lang $lang */
-        $lang = $this->requestStack->getCurrentRequest()?->getSession()->getLang();
+        $lang = $this->requestStack->getCurrentRequest()->getSession()->getLang();
 
         $data = [
             'email' => $customer->getEmail(),
@@ -109,10 +128,13 @@ class CartListener implements EventSubscriberInterface
         }
     }
 
+    /**
+     * @throws PropelException
+     */
     protected function trackCart(CartEvent $event, $eventName): void
     {
         /** @var Customer $customer */
-        if (null === $customer = $this->requestStack->getCurrentRequest()?->getSession()?->getCustomerUser()) {
+        if (null === $customer = $this->requestStack->getCurrentRequest()->getSession()->getCustomerUser()) {
             // No tracking if customer is not logged in, as Brevo requires an email in e-commerce tracking events.
             return;
         }
@@ -131,7 +153,7 @@ class CartListener implements EventSubscriberInterface
         $country = CountryQuery::create()->filterByByDefault(1)->findOne();
 
         /** @var Lang $lang */
-        $lang = $this->requestStack->getCurrentRequest()?->getSession()->get('thelia.current.lang');
+        $lang = $this->requestStack->getCurrentRequest()->getSession()->get('thelia.current.lang');
 
         $data = [
             'email' => $customer->getEmail(),

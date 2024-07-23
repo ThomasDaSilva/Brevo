@@ -13,11 +13,10 @@
 namespace Brevo\EventListeners;
 
 use Brevo\Brevo;
-use Brevo\Event\BrevoCustomerUpdateEvent;
 use Brevo\Event\BrevoEvents;
 use Brevo\Services\BrevoCustomerService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Thelia\Core\Event\Customer\CustomerCreateOrUpdateEvent;
+use Thelia\Core\Event\ActionEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Translation\Translator;
 use Thelia\Exception\TheliaProcessException;
@@ -26,12 +25,13 @@ use Thelia\Model\ConfigQuery;
 
 class CustomerListener implements EventSubscriberInterface
 {
-    public function __construct(
-        private BrevoCustomerService $brevoCustomerService
-    ) {
+    private $brevoCustomerService;
+
+    public function __construct(BrevoCustomerService $brevoCustomerService) {
+        $this->brevoCustomerService = $brevoCustomerService;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             TheliaEvents::CUSTOMER_CREATEACCOUNT => ['createOrUpdateCustomer', 100],
@@ -41,16 +41,16 @@ class CustomerListener implements EventSubscriberInterface
         ];
     }
 
-    public function createOrUpdateCustomer(CustomerCreateOrUpdateEvent|BrevoCustomerUpdateEvent $event): void
+    public function createOrUpdateCustomer(ActionEvent $event): void
     {
         try {
-            $this->brevoCustomerService->createUpdateContact($event->getCustomer()?->getId());
+            $this->brevoCustomerService->createUpdateContact($event->getCustomer()->getId());
         } catch (\Exception $ex) {
             Tlog::getInstance()->error('Failed to create or update Brevo contact : '.$ex->getMessage());
 
             if (ConfigQuery::read(Brevo::CONFIG_THROW_EXCEPTION_ON_ERROR, false)) {
                 throw new TheliaProcessException(
-                    Translator::getInstance()?->trans(
+                    Translator::getInstance()->trans(
                         'An error occurred during the newsletter registration process',
                         [],
                         Brevo::MESSAGE_DOMAIN

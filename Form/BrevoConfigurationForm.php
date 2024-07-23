@@ -216,12 +216,4 @@ END;
             );
         }
     }
-
-    /**
-     * @return string the name of you form. This name must be unique
-     */
-    public static function getName()
-    {
-        return 'brevo_configuration';
-    }
 }

@@ -12,20 +12,23 @@
 
 namespace Brevo\Services;
 
+use Propel\Runtime\Exception\PropelException;
 use Thelia\Log\Tlog;
 use Thelia\Model\Base\ProductQuery;
 use Thelia\Model\Order;
-use Thelia\Model\OrderProduct;
-use Thelia\Model\ProductSaleElementsQuery;
 
 class BrevoOrderService
 {
-    public function __construct(
-        private BrevoApiService $brevoApiService
-    )
+    private $brevoApiService;
+
+    public function __construct(BrevoApiService $brevoApiService)
     {
+        $this->brevoApiService = $brevoApiService;
     }
 
+    /**
+     * @throws PropelException
+     */
     public function exportOrder(Order $order, $locale): void
     {
         $data = $this->getOrderData($order, $locale);
@@ -37,6 +40,9 @@ class BrevoOrderService
         }
     }
 
+    /**
+     * @throws PropelException
+     */
     public function exportOrderInBatch($limit, $offset, $locale): void
     {
         $orders = ProductQuery::create()
@@ -60,13 +66,16 @@ class BrevoOrderService
         }
     }
 
-    protected function getOrderData(Order $order, $locale)
+    /**
+     * @throws PropelException
+     */
+    protected function getOrderData(Order $order, $locale): array
     {
         $invoiceAddress = $order->getOrderAddressRelatedByInvoiceOrderAddressId();
         $addressCountry = $invoiceAddress->getCountry();
         $addressCountry->setLocale($locale);
 
-        $coupons = array_map(function ($coupon) {
+        $coupons = array_map(static function ($coupon) {
             return $coupon['Code'];
         }, $order->getOrderCoupons()->toArray());
 
@@ -84,14 +93,17 @@ class BrevoOrderService
             ],
             'coupon' => $coupons,
             'id' => $order->getRef(),
-            'createdAt' => $order->getCreatedAt()?->format("Y-m-d\TH:m:s\Z"),
-            'updatedAt' => $order->getUpdatedAt()?->format("Y-m-d\TH:m:s\Z"),
+            'createdAt' => $order->getCreatedAt()->format("Y-m-d\TH:m:s\Z"),
+            'updatedAt' => $order->getUpdatedAt()->format("Y-m-d\TH:m:s\Z"),
             'status' => $order->getOrderStatus()->getCode(),
             'amount' => round($order->getTotalAmount($tax), 2),
         ];
     }
 
-    protected function getOrderProductsData(Order $order)
+    /**
+     * @throws PropelException
+     */
+    protected function getOrderProductsData(Order $order): array
     {
         $orderProductsData = [];
         foreach ($order->getOrderProducts() as $orderProduct) {

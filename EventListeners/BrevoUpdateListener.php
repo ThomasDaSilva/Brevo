@@ -12,31 +12,32 @@
 
 namespace Brevo\EventListeners;
 
-use Brevo\Event\BrevoCategoryUpdateEvent;
 use Brevo\Event\BrevoEvents;
-use Brevo\Event\BrevoProductUpdateEvent;
 use Brevo\Services\BrevoCategoryService;
 use Brevo\Services\BrevoProductService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Thelia\Core\Event\ActionEvent;
 use Thelia\Core\Event\Category\CategoryCreateEvent;
-use Thelia\Core\Event\Category\CategoryUpdateEvent;
 use Thelia\Core\Event\Product\ProductCreateEvent;
-use Thelia\Core\Event\Product\ProductUpdateEvent;
 use Thelia\Core\Event\TheliaEvents;
-use Thelia\Model\Category;
 use Thelia\Model\Country;
 use Thelia\Model\Currency;
 use Thelia\Model\Lang;
 
 class BrevoUpdateListener implements EventSubscriberInterface
 {
+    private $brevoCategoryService;
+    private $brevoProductService;
+
     public function __construct(
-        private BrevoCategoryService $brevoCategoryService,
-        private BrevoProductService $brevoProductService
+        BrevoCategoryService $brevoCategoryService,
+        BrevoProductService $brevoProductService
     ) {
+        $this->brevoProductService = $brevoProductService;
+        $this->brevoCategoryService = $brevoCategoryService;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             TheliaEvents::PRODUCT_CREATE => ['createProduct', 100],
@@ -50,7 +51,7 @@ class BrevoUpdateListener implements EventSubscriberInterface
     }
 
 
-    public function updateProduct(ProductUpdateEvent|BrevoProductUpdateEvent $event): void
+    public function updateProduct(ActionEvent $event): void
     {
         $lang = Lang::getDefaultLanguage();
         $currency = Currency::getDefaultCurrency();
@@ -66,7 +67,7 @@ class BrevoUpdateListener implements EventSubscriberInterface
         $this->brevoProductService->export($event->getProduct(), $lang->getLocale(), $currency, $country);
     }
 
-    public function updateCategory(CategoryUpdateEvent|BrevoCategoryUpdateEvent $event): void
+    public function updateCategory(ActionEvent $event): void
     {
         $lang = Lang::getDefaultLanguage();
         $this->brevoCategoryService->export($event->getCategory(), $lang->getLocale());

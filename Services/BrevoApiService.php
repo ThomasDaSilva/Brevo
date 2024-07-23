@@ -9,7 +9,7 @@ use Thelia\Model\ConfigQuery;
 
 class BrevoApiService
 {
-    public function sendTrackEvent($eventName, $data = [])
+    public function sendTrackEvent($eventName, $data = []): void
     {
         $marketingAutomationKey = ConfigQuery::read(Brevo::CONFIG_AUTOMATION_KEY);
         $apikey = ConfigQuery::read(Brevo::CONFIG_API_SECRET);
@@ -25,7 +25,7 @@ class BrevoApiService
         );
     }
 
-    public function sendPostEvent($url, $data = [])
+    public function sendPostEvent($url, $data = []): array
     {
         $marketingAutomationKey = ConfigQuery::read(Brevo::CONFIG_AUTOMATION_KEY);
         $apikey = ConfigQuery::read(Brevo::CONFIG_API_SECRET);
@@ -41,7 +41,7 @@ class BrevoApiService
         );
     }
 
-    private function sendRequest($method, $url, $data = [], $headers = [])
+    private function sendRequest($method, $url, $data = [], $headers = []): array
     {
         try {
             $curl = curl_init();
@@ -82,7 +82,7 @@ class BrevoApiService
 
             $error = curl_error($curl);
 
-            $response['success'] = !$error && substr((string) $status, 0, 1) === '2';
+            $response['success'] = !$error && strpos((string)$status, '2') === 0;
 
             if (! $response['success']) {
                 $errorMessage = !empty($error) ? $error : (($jsonResponse && $jsonResponse['message']) ? $jsonResponse['message'] : 'Undefined error');
@@ -107,7 +107,7 @@ class BrevoApiService
         return $response;
     }
 
-    public function enableEcommerce()
+    public function enableEcommerce(): array
     {
        return $this->sendPostEvent('https://api.brevo.com/v3/ecommerce/activate');
     }

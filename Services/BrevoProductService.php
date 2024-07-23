@@ -13,10 +13,10 @@
 namespace Brevo\Services;
 
 use Brevo\Brevo;
-use Brevo\Trait\DataExtractorTrait;
+use Brevo\BrevoTrait\DataExtractorTrait;
 use Propel\Runtime\Exception\PropelException;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Thelia\Core\Event\Image\ImageEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Exception\TheliaProcessException;
@@ -39,17 +39,21 @@ class BrevoProductService
 {
     use DataExtractorTrait;
 
-    protected string $baseSourceFilePath;
+    protected $baseSourceFilePath;
 
-    protected array $metaDataMapping = [];
+    protected $metaDataMapping = [];
 
-    protected ?LibraryImageService $libraryImageService;
+    protected $libraryImageService;
+    protected $brevoApiService;
+    protected $dispatcher;
 
     public function __construct(
-        protected BrevoApiService $brevoApiService,
-        protected EventDispatcherInterface $dispatcher,
+        BrevoApiService $brevoApiService,
+        EventDispatcherInterface $dispatcher,
         ContainerInterface $container
     ) {
+        $this->dispatcher = $dispatcher;
+        $this->brevoApiService = $brevoApiService;
         if (null === $this->baseSourceFilePath = ConfigQuery::read('images_library_path')) {
             $this->baseSourceFilePath = THELIA_LOCAL_DIR.'media'.DS.'images';
         } else {
@@ -145,7 +149,7 @@ class BrevoProductService
         $productData = [
             'id' => $product->getRef(),
             'name' => $product->getTitle(),
-            'url' => URL::getInstance()?->absoluteUrl($product->getUrl()),
+            'url' => URL::getInstance()->absoluteUrl($product->getUrl()),
             'sku' => $product->getDefaultSaleElements()->getEanCode() ?? $product->getRef(),
             'imageUrl' => $this->getProductImageUrl($product),
             'categories' => $this->getProductCategories($product),
@@ -155,7 +159,7 @@ class BrevoProductService
                 'product_metadata_query',
                 'product',
                 'product.id',
-                $product->getId(),
+                $product->getId()
             ),
         ];
 
@@ -165,7 +169,7 @@ class BrevoProductService
             'product_query',
             'product',
             'product.id',
-            $product->getId(),
+            $product->getId()
         );
 
         return array_merge($productData, $mappedFields);
@@ -181,7 +185,7 @@ class BrevoProductService
     {
         $data = [];
 
-        $country = $cart->getCustomer()?->getDefaultAddress()->getCountry() ?? Country::getDefaultCountry();
+        $country = $cart->getCustomer()->getDefaultAddress()->getCountry() ?? Country::getDefaultCountry();
 
         foreach ($cart->getCartItems() as $cartItem) {
             $product = $cartItem->getProduct()->setLocale($locale);
@@ -243,7 +247,7 @@ class BrevoProductService
                 (float) $orderProduct->getPromoPrice() + $totalPromoTaxes,
                 (bool) $orderProduct->getWasInPromo(),
                 $currency,
-                $pse?->getProduct()
+                $pse->getProduct()
             );
 
             // Add quantity
@@ -311,12 +315,12 @@ class BrevoProductService
             'oldPrice' => $price,
             'oldPrice_taxinc' => $taxedPrice,
             'discount' => $discount,
-            'currency' => $currency?->getCode(),
+            'currency' => $currency->getCode(),
         ];
 
         if (null !== $product) {
             $productData['categories'] = $this->getProductCategories($product);
-            $productData['url'] = URL::getInstance()?->absoluteUrl($product->getUrl());
+            $productData['url'] = URL::getInstance()->absoluteUrl($product->getUrl());
             if (null !== $imageUrl = $this->getProductImageUrl($product)) {
                 $productData['imageUrl'] = $imageUrl;
             }
@@ -327,7 +331,7 @@ class BrevoProductService
                 'product_query',
                 'product',
                 'product.id',
-                $product->getId(),
+                $product->getId()
             );
 
             $productData = array_merge($productData, $mappedFields);
@@ -379,7 +383,7 @@ class BrevoProductService
 
         try {
             // Dispatch image processing event
-            $this->dispatcher->dispatch($event, TheliaEvents::IMAGE_PROCESS);
+            $this->dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $event);
 
             return $event->getFileUrl();
         } catch (\Exception $ex) {

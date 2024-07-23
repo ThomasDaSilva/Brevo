@@ -13,8 +13,6 @@
 namespace Brevo;
 
 use Propel\Runtime\Connection\ConnectionInterface;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
-use Symfony\Component\Filesystem\Filesystem;
 use Thelia\Install\Database;
 use Thelia\Model\Config;
 use Thelia\Model\ConfigQuery;
@@ -101,13 +99,5 @@ class Brevo extends BaseModule
                 $db->execute("ALTER TABLE `brevo_newsletter` CHANGE `relation_id` `relation_id` varchar(255) NOT NULL AFTER `email`");
             }
         }
-    }
-
-    public static function configureServices(ServicesConfigurator $servicesConfigurator): void
-    {
-        $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
-            ->exclude([THELIA_MODULE_DIR.ucfirst(self::getModuleCode()).'/I18n/*'])
-            ->autowire(true)
-            ->autoconfigure(true);
     }
 }

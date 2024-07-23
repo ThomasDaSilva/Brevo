@@ -19,12 +19,8 @@
 
 namespace Brevo\Controller;
 
-use Brevo\Api\BrevoClient;
 use Brevo\Brevo;
-use Brevo\Form\BrevoConfigurationForm;
 use Brevo\Services\BrevoApiService;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Thelia\Controller\Admin\BaseAdminController;
@@ -41,7 +37,7 @@ class BrevoConfigController extends BaseAdminController
 {
     public function saveAction(Request $request, ParserContext $parserContext, BrevoApiService $brevoApiService)
     {
-        $baseForm = $this->createForm(BrevoConfigurationForm::getName());
+        $baseForm = $this->createForm('brevo.configuration');
 
         try {
             $form = $this->validateForm($baseForm);

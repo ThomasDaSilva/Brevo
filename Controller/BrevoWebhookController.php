@@ -28,7 +28,6 @@ use Thelia\Controller\Front\BaseFrontController;
 use Thelia\Core\HttpFoundation\Request;
 use Thelia\Core\HttpFoundation\Response;
 use Thelia\Log\Tlog;
-use Thelia\Model\Newsletter;
 use Thelia\Model\NewsletterQuery;
 
 /**

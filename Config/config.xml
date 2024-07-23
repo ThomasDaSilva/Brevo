@@ -16,4 +16,15 @@
             <argument type="service" id="event_dispatcher"/>
         </hook>
     </hooks>
+
+    <services>
+        <service id="brevo.api.service" class="Brevo\Service\BrevoApiService"/>
+
+        <service id="brevo.category.service" class="Brevo\Service\BrevoCategoryService">
+            <argument type="service" id="brevo.api.service"/>
+        </service>
+        <service id="brevo.category.service" class="Brevo\Service\BrevoCategoryService">
+            <argument type="service" id="brevo.api.service"/>
+        </service>
+    </services>
 </config>

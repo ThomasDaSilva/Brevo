@@ -28,8 +28,11 @@ use Thelia\Model\Product;
 
 class BrevoProductUpdateEvent extends ActionEvent
 {
-    public function __construct(protected Product $product)
+    protected $product;
+
+    public function __construct(Product $product)
     {
+        $this->product = $product;
     }
 
     public function getProduct(): Product

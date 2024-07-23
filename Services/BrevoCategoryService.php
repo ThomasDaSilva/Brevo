@@ -10,21 +10,24 @@ use Thelia\Tools\URL;
 
 class BrevoCategoryService
 {
-    public function __construct(private BrevoApiService $brevoApiService)
+    private $brevoApiService;
+
+    public function __construct(BrevoApiService $brevoApiService)
     {
+        $this->brevoApiService = $brevoApiService;
     }
 
-    public function getObjName()
+    public function getObjName(): string
     {
         return 'category';
     }
 
-    public function getCount()
+    public function getCount(): int
     {
         return CategoryQuery::create()->count();
     }
 
-    public function export(Category $category, $locale)
+    public function export(Category $category, $locale): void
     {
         $data = $this->getData($category, $locale);
         $data['updateEnabled'] = true;
@@ -36,7 +39,7 @@ class BrevoCategoryService
         }
     }
 
-    public function exportInBatch($limit, $offset, $locale)
+    public function exportInBatch($limit, $offset, $locale): void
     {
         $categories = CategoryQuery::create()
             ->setLimit($limit)
@@ -60,14 +63,14 @@ class BrevoCategoryService
         }
     }
 
-    public function getData(Category $category, $locale)
+    public function getData(Category $category, $locale): array
     {
         $category->setLocale($locale);
 
          return [
             'id' => (string)$category->getId(),
             'name' => $category->getTitle(),
-            'url' => URL::getInstance()?->absoluteUrl($category->getUrl()),
+            'url' => URL::getInstance()->absoluteUrl($category->getUrl()),
         ];
     }
 }
